@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="description" content="Install DuoScore as an app on your Android phone">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <title>Install DuoScore</title>
+  <style>
+    :root { --bg: #0a0a0f; --panel: #12121a; --panel2: #1a1a24; --ink: #ece9e2; --muted: #8b8b98; --line: #24242f; --red: #ef4444; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 28px 18px 40px; }
+    .card { width: min(520px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 26px 22px; }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--red); box-shadow: 0 0 14px rgba(239, 68, 68, 0.7); }
+    h1 { font-size: 22px; font-weight: 800; }
+    p { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 8px; }
+    a.dl { display: block; text-align: center; background: var(--red); color: #fff; text-decoration: none; font-size: 18px; font-weight: 700; padding: 18px; border-radius: 14px; margin: 20px 0 6px; box-shadow: 0 4px 18px rgba(239, 68, 68, 0.35); }
+    a.dl small { display: block; font-weight: 400; font-size: 13px; opacity: 0.85; }
+    a.dl:active { transform: scale(0.98); }
+    ol { margin: 14px 0 18px 20px; color: var(--muted); font-size: 14px; line-height: 1.9; }
+    ol b { color: var(--ink); }
+    .alt { border-top: 1px solid var(--line); padding-top: 16px; }
+    .alt a { color: var(--red); }
+    .warn { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: var(--muted); margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <span class="dot" aria-hidden="true"></span>
+      <h1>Install DuoScore</h1>
+    </div>
+    <p>DuoScore is a real Android app now. Download it once — then it works with no internet, saves everything, and lives on your home screen.</p>
+
+    <a class="dl" href="./duoscore.apk" download="duoscore.apk">
+      Download DuoScore app<small>4 MB &middot; Android phone / tablet</small>
+    </a>
+
+    <ol>
+      <li>Tap the red button above</li>
+      <li>If Chrome says <b>can&#8217;t download securely</b> — tap <b>&#8942; &rarr; Download</b> anyway</li>
+      <li>When it&#8217;s done, tap the downloaded file</li>
+      <li>Android will ask to <b>allow unknown apps</b> — allow it, then <b>Install</b></li>
+      <li>Open DuoScore and start playing</li>
+    </ol>
+
+    <div class="alt">
+      <p><b style="color:var(--ink)">No download button visible?</b> Open this page in another browser (Firefox, Opera, Samsung Internet, Edge) and the button will work.</p>
+      <p>Or play it right now in the browser: <a href="./">open DuoScore</a> — in Chrome you can also tap <b>&#8942; &rarr; Add to Home screen</b> for an app-style icon.</p>
+    </div>
+
+    <div class="warn">&#9888;&#65039; Play Protect may warn about an unknown developer — this is Dali&#8217;s own app, it only keeps score in your phone&#8217;s storage. Tap &#8220;Install anyway&#8221; if you see it.</div>
+  </div>
+</body>
+</html>

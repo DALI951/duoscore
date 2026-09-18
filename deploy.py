@@ -13,6 +13,7 @@ USER = "modali"
 REMOTE_ROOT = "/public_html/score"
 FILES = [
     "index.html",
+    "install.html",
     "manifest.webmanifest",
     "icon.svg",
     "css/style.css",
