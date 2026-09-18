@@ -1,0 +1,2 @@
+# build artifacts (APK lives on the modali server)
+*.apk
