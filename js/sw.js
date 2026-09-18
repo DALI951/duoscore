@@ -1,6 +1,6 @@
 /* DuoScore service worker — network-first with cache fallback (always fresh when online, offline-capable). */
 'use strict';
-var CACHE = 'duoscore-v3';
+var CACHE = 'duoscore-v4';
 var ASSETS = [
   './',
   './index.html',

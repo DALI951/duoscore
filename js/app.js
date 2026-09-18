@@ -1,4 +1,4 @@
-/* DuoScore UI — wires the pure core to the DOM. */
+/* DuoScore v2 UI — wires the pure core to the DOM. Simple: totals + small rounds. */
 (function () {
   'use strict';
   var KEY = 'duoscore.v1';
@@ -14,45 +14,32 @@
     });
   }
 
-  function pips(player) {
-    if (state.target > 15) return ''; // unlimited target — numbers say it all, no dots
-    var key = player === 1 ? 'p1' : 'p2';
-    var wins = state.wins[key];
-    var out = '';
-    for (var i = 0; i < state.target; i++) {
-      out += '<span class="pip' + (i < wins ? ' on' : '') + '"></span>';
-    }
-    return out;
-  }
-
   function render() {
-    // scoreboard
     document.getElementById('name1').textContent = state.p1.name;
     document.getElementById('name2').textContent = state.p2.name;
-    document.getElementById('w1').textContent = state.wins.p1;
-    document.getElementById('w2').textContent = state.wins.p2;
-    document.getElementById('pips1').innerHTML = pips(1);
-    document.getElementById('pips2').innerHTML = pips(2);
+    document.getElementById('w1').textContent = state.score.p1;
+    document.getElementById('w2').textContent = state.score.p2;
 
-    // round badge
+    // lead line + round badge
     var badge = document.getElementById('roundBadge');
-    if (state.mode === 'points') {
-      badge.innerHTML = 'Round <b>' + state.round + '</b> &middot; <b>' +
-        state.open.p1 + ' &ndash; ' + state.open.p2 + '</b> &middot; first to ' + state.target;
-    } else {
-      badge.innerHTML = 'Round <b>' + state.round + '</b> &middot; first to ' + state.target;
-    }
+    var diff = state.score.p1 - state.score.p2;
+    var lead;
+    if (diff > 0) lead = esc(state.p1.name) + ' leads by ' + diff;
+    else if (diff < 0) lead = esc(state.p2.name) + ' leads by ' + (-diff);
+    else lead = 'Tied';
+    badge.innerHTML = 'Round <b>' + state.round + '</b> &middot; ' + lead;
 
-    // footer
-    document.getElementById('modeTag').textContent = state.mode === 'winner' ? 'Winner mode' : 'Points mode';
-    document.getElementById('targetTag').textContent = state.target;
-
-    // match over banner
+    // match banner
     var banner = document.getElementById('matchBanner');
     if (state.over) {
-      var champ = state.over.winner === 1 ? state.p1.name : state.p2.name;
-      var scoreline = state.over.score.p1 + ' &ndash; ' + state.over.score.p2;
-      document.getElementById('bannerTitle').textContent = champ + ' wins the match!';
+      var title, scoreline;
+      if (state.over.winner === 0) { title = 'It\u2019s a draw!'; scoreline = state.over.score.p1 + ' \u2013 ' + state.over.score.p2; }
+      else {
+        var champ = state.over.winner === 1 ? state.p1.name : state.p2.name;
+        title = champ + ' wins the match!';
+        scoreline = state.over.score.p1 + ' \u2013 ' + state.over.score.p2;
+      }
+      document.getElementById('bannerTitle').textContent = title;
       document.getElementById('bannerScore').innerHTML = scoreline;
       banner.classList.remove('hidden');
     } else {
@@ -63,56 +50,32 @@
     renderHistory();
   }
 
+  function panel(player) {
+    var key = player === 1 ? 'p1' : 'p2';
+    return '<div class="ppanel ' + (player === 1 ? 'one' : 'two') + '">' +
+      '<div class="pp-name">' + esc(state[key].name) + '</div>' +
+      '<div class="pp-add">' +
+        '<input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="How much?" class="pp-input" data-player="' + player + '">' +
+        '<button type="button" class="btn" data-player="' + player + '" data-add>Add</button>' +
+      '</div>' +
+    '</div>';
+  }
+
   function renderRoundArea() {
     var area = document.getElementById('roundArea');
-    var html = '';
-    if (!state.over) {
-      if (state.mode === 'winner') {
-        html =
-          '<div class="winnergrid">' +
-            '<button type="button" class="btn winbtn one" data-win="1">' +
-              '<span class="wb-name">' + esc(state.p1.name) + '</span>' +
-              '<span class="wb-label">wins the round</span>' +
-            '</button>' +
-            '<button type="button" class="btn winbtn two" data-win="2">' +
-              '<span class="wb-name">' + esc(state.p2.name) + '</span>' +
-              '<span class="wb-label">wins the round</span>' +
-            '</button>' +
-          '</div>';
-      } else {
-        var lead = state.open.p1 === 0 && state.open.p2 === 0
-          ? '' : (state.open.p1 === state.open.p2 ? ' nolead' : (state.open.p1 > state.open.p2 ? ' live' : ''));
-        html =
-          '<div class="pointsgrid">' +
-            '<div class="ppanel one' + (lead === ' live' ? ' live' : '') + '">' +
-              '<div class="pp-name">' + esc(state.p1.name) + '</div>' +
-              '<div class="pp-score">' + state.open.p1 + '</div>' +
-              '<div class="pp-add">' +
-                '<input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="How much?" class="pp-input" data-player="1">' +
-                '<button type="button" class="btn" data-player="1" data-add>Add</button>' +
-              '</div>' +
-              '<button type="button" class="btn ghost tiny pp-clear" data-player="1" data-clear>Clear</button>' +
-            '</div>' +
-            '<div class="ppanel two">' +
-              '<div class="pp-name">' + esc(state.p2.name) + '</div>' +
-              '<div class="pp-score">' + state.open.p2 + '</div>' +
-              '<div class="pp-add">' +
-                '<input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="How much?" class="pp-input" data-player="2">' +
-                '<button type="button" class="btn" data-player="2" data-add>Add</button>' +
-              '</div>' +
-              '<button type="button" class="btn ghost tiny pp-clear" data-player="2" data-clear>Clear</button>' +
-            '</div>' +
-          '</div>' +
-          '<button type="button" class="btn primary big" id="endRoundBtn">End round</button>';
-      }
+    if (state.over) {
+      area.innerHTML = '';
+      return;
     }
-    area.innerHTML = html;
+    area.innerHTML =
+      '<div class="pointsgrid">' + panel(1) + panel(2) + '</div>' +
+      '<button type="button" class="btn primary big" id="finishBtn">Finish match \u25B8</button>';
   }
 
   function renderHistory() {
     var list = document.getElementById('historyList');
     if (!state.history.length) {
-      list.innerHTML = '<li class="emptyhist">No rounds yet &mdash; tap a player to start.</li>';
+      list.innerHTML = '<li class="emptyhist">No rounds yet \u2014 add points to start.</li>';
       document.getElementById('undoBtn').disabled = true;
       return;
     }
@@ -120,20 +83,10 @@
     var rows = [];
     for (var i = state.history.length - 1; i >= 0; i--) {
       var h = state.history[i];
-      var who;
-      var cls = 'draw';
-      if (h.winner === 1) { who = state.p1.name + ' wins'; cls = 'w1'; }
-      else if (h.winner === 2) { who = state.p2.name + ' wins'; cls = 'w2'; }
-      else { who = 'draw'; }
-      var names = esc(state.p1.name) + ' <span class="rnumx">' + h.p1;
-      if (state.mode === 'points') {
-        names += ' &ndash; ' + h.p2;
-      }
-      names += '</span> ' + esc(state.p2.name);
+      var name = h.player === 1 ? state.p1.name : state.p2.name;
       rows.push(
         '<li class="hrow"><span class="rnum">R' + h.n + '</span>' +
-        '<span class="rnames">' + names + '</span>' +
-        '<span class="rwin ' + cls + '">' + esc(who) + '</span>' +
+        '<span class="rnames">' + esc(name) + ' <b>+' + h.pts + '</b></span>' +
         '<button type="button" class="hdel" data-del="' + h.n + '" aria-label="Delete round ' + h.n + '">&#10005;</button></li>'
       );
     }
@@ -151,28 +104,26 @@
   function addTyped(player, input) {
     var digits = String(input.value || '').replace(/\D/g, '');
     if (digits !== '') {
-      commit(DuoCore.addPoints(state, player, Number(digits)));
+      commit(DuoCore.addRound(state, player, Number(digits)));
       input.value = '';
       input.focus();
     }
   }
 
   document.addEventListener('click', function (e) {
-    var t = e.target.closest ? e.target.closest('[data-win],[data-add],[data-clear],[data-del],#endRoundBtn,#rematchBtn,#undoBtn,#resetBtn,#configBtn') : null;
+    var t = e.target.closest ? e.target.closest('[data-add],[data-del],#finishBtn,#rematchBtn,#undoBtn,#resetBtn,#configBtn') : null;
     if (!t) return;
 
-    if (t.hasAttribute('data-win')) commit(DuoCore.closeWinner(state, Number(t.getAttribute('data-win'))));
-    else if (t.hasAttribute('data-add')) {
+    if (t.hasAttribute('data-add')) {
       var p = Number(t.getAttribute('data-player'));
       var inp = t.parentElement.querySelector('.pp-input');
       if (inp) addTyped(p, inp);
     }
-    else if (t.hasAttribute('data-clear')) commit(DuoCore.clearOpen(state, Number(t.getAttribute('data-player'))));
     else if (t.hasAttribute('data-del')) commit(DuoCore.deleteRound(state, Number(t.getAttribute('data-del'))));
-    else if (t.id === 'endRoundBtn') commit(DuoCore.endRound(state));
+    else if (t.id === 'finishBtn') commit(DuoCore.finish(state));
     else if (t.id === 'rematchBtn') commit(DuoCore.rematch(state));
     else if (t.id === 'undoBtn') commit(DuoCore.undo(state));
-    else if (t.id === 'resetBtn') commit(DuoCore.rematch(DuoCore.setTarget(DuoCore.createGame(null), state.target)));
+    else if (t.id === 'resetBtn') commit(DuoCore.rematch(state));
     else if (t.id === 'configBtn') openConfig();
   });
 
@@ -185,21 +136,17 @@
     }
   });
 
-  /* ---------- config dialog ---------- */
+  /* ---------- settings (names only) ---------- */
   var dialog = document.getElementById('configDialog');
   function openConfig() {
     document.getElementById('cfgName1').value = state.p1.name;
     document.getElementById('cfgName2').value = state.p2.name;
-    document.getElementById('cfgMode').value = state.mode;
-    document.getElementById('cfgTarget').value = state.target;
     dialog.showModal();
   }
   document.getElementById('configForm').addEventListener('submit', function () {
     commit(DuoCore.setNames(state,
       document.getElementById('cfgName1').value,
       document.getElementById('cfgName2').value));
-    commit(DuoCore.setMode(state, document.getElementById('cfgMode').value));
-    commit(DuoCore.setTarget(state, Number(document.getElementById('cfgTarget').value)));
   });
   document.getElementById('cfgCancel').addEventListener('click', function () {
     dialog.close();

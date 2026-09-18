@@ -65,29 +65,19 @@
   </main>
 
   <footer class="foot">
-    <span id="modeTag" class="foottag">Winner mode</span>
-    <span class="foottag">First to <span id="targetTag">3</span></span>
+    <span class="foottag">Highest total wins</span>
     <button id="resetBtn" class="btn ghost tiny" type="button">Reset match</button>
   </footer>
 
   <!-- Settings dialog -->
   <dialog id="configDialog">
     <form id="configForm" method="dialog">
-      <h2>Match settings</h2>
+      <h2>Players</h2>
       <label>Player 1
         <input id="cfgName1" type="text" maxlength="16" autocomplete="off">
       </label>
       <label>Player 2
         <input id="cfgName2" type="text" maxlength="16" autocomplete="off">
-      </label>
-      <label>Scoring
-        <select id="cfgMode">
-          <option value="winner">Who wins the round</option>
-          <option value="points">Points per round</option>
-        </select>
-      </label>
-      <label>First to (wins)
-        <input id="cfgTarget" type="number" min="1" step="1" placeholder="e.g. 3">
       </label>
       <div class="dialog-btns">
         <button type="button" id="cfgCancel" class="btn ghost">Cancel</button>
