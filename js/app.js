@@ -15,6 +15,7 @@
   }
 
   function pips(player) {
+    if (state.target > 15) return ''; // unlimited target — numbers say it all, no dots
     var key = player === 1 ? 'p1' : 'p2';
     var wins = state.wins[key];
     var out = '';
@@ -86,17 +87,17 @@
             '<div class="ppanel one' + (lead === ' live' ? ' live' : '') + '">' +
               '<div class="pp-name">' + esc(state.p1.name) + '</div>' +
               '<div class="pp-score">' + state.open.p1 + '</div>' +
-              '<div class="pp-btns">' +
-                '<button type="button" class="btn ghost" data-player="1" data-pts="1">+1</button>' +
-                '<button type="button" class="btn ghost" data-player="1" data-pts="5">+5</button>' +
+              '<div class="pp-add">' +
+                '<input type="number" inputmode="numeric" min="0" placeholder="How much?" class="pp-input" data-player="1">' +
+                '<button type="button" class="btn" data-player="1" data-add>Add</button>' +
               '</div>' +
             '</div>' +
             '<div class="ppanel two">' +
               '<div class="pp-name">' + esc(state.p2.name) + '</div>' +
               '<div class="pp-score">' + state.open.p2 + '</div>' +
-              '<div class="pp-btns">' +
-                '<button type="button" class="btn ghost" data-player="2" data-pts="1">+1</button>' +
-                '<button type="button" class="btn ghost" data-player="2" data-pts="5">+5</button>' +
+              '<div class="pp-add">' +
+                '<input type="number" inputmode="numeric" min="0" placeholder="How much?" class="pp-input" data-player="2">' +
+                '<button type="button" class="btn" data-player="2" data-add>Add</button>' +
               '</div>' +
             '</div>' +
           '</div>' +
@@ -144,19 +145,39 @@
   }
 
   /* ---------- events ---------- */
+  function addTyped(player, input) {
+    var val = input.value === '' ? 0 : Number(input.value);
+    if (isFinite(val) && val > 0) {
+      commit(DuoCore.addPoints(state, player, val));
+      input.value = '';
+      input.focus();
+    }
+  }
+
   document.addEventListener('click', function (e) {
-    var t = e.target.closest ? e.target.closest('[data-win],[data-player],[data-pts],#endRoundBtn,#rematchBtn,#undoBtn,#resetBtn,#configBtn') : null;
+    var t = e.target.closest ? e.target.closest('[data-win],[data-add],#endRoundBtn,#rematchBtn,#undoBtn,#resetBtn,#configBtn') : null;
     if (!t) return;
 
     if (t.hasAttribute('data-win')) commit(DuoCore.closeWinner(state, Number(t.getAttribute('data-win'))));
-    else if (t.hasAttribute('data-player')) {
-      commit(DuoCore.addPoints(state, Number(t.getAttribute('data-player')), Number(t.getAttribute('data-pts'))));
+    else if (t.hasAttribute('data-add')) {
+      var p = Number(t.getAttribute('data-player'));
+      var inp = t.parentElement.querySelector('.pp-input');
+      if (inp) addTyped(p, inp);
     }
     else if (t.id === 'endRoundBtn') commit(DuoCore.endRound(state));
     else if (t.id === 'rematchBtn') commit(DuoCore.rematch(state));
     else if (t.id === 'undoBtn') commit(DuoCore.undo(state));
     else if (t.id === 'resetBtn') commit(DuoCore.rematch(DuoCore.setTarget(DuoCore.createGame(null), state.target)));
     else if (t.id === 'configBtn') openConfig();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    var inp = e.target.closest ? e.target.closest('.pp-input') : null;
+    if (inp) {
+      e.preventDefault();
+      addTyped(Number(inp.getAttribute('data-player')), inp);
+    }
   });
 
   /* ---------- config dialog ---------- */

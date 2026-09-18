@@ -59,7 +59,8 @@ eq('rematch keeps names/target', [r.p1.name, r.target], ['Player 1', 3]);
 // names / target
 var n = DuoCore.setNames(DuoCore.createGame(null), '  Adam  ', '');
 eq('names cleaned', [n.p1.name, n.p2.name], ['Adam', 'Player']);
-eq('target clamp', DuoCore.setTarget(DuoCore.createGame(null), 99).target, 15);
+eq('target no upper limit', DuoCore.setTarget(DuoCore.createGame(null), 99).target, 99);
+eq('target big value', DuoCore.setTarget(DuoCore.createGame(null), 1000).target, 1000);
 eq('target floor', DuoCore.setTarget(DuoCore.createGame(null), -3).target, 1);
 
 // persistence roundtrip

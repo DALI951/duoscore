@@ -111,8 +111,16 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .ppanel.live { border-color: rgba(239, 68, 68, 0.5); }
 .ppanel .pp-name { font-size: 14px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ppanel .pp-score { font-size: 56px; font-weight: 800; margin: 6px 0 10px; font-variant-numeric: tabular-nums; }
-.ppanel .pp-btns { display: flex; gap: 8px; }
-.ppanel .pp-btns .btn { flex: 1; padding: 12px 0; font-size: 18px; font-weight: 700; }
+.ppanel .pp-add { display: flex; gap: 8px; }
+.ppanel .pp-add .pp-input {
+  flex: 1; min-width: 0; width: 100%;
+  background: var(--panel2); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 10px; font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.ppanel .pp-add .btn { flex: 0 0 auto; padding: 12px 16px; font-size: 15px; font-weight: 700; border-radius: 12px; }
+.ppanel.one .pp-add .btn { color: var(--red); border-color: rgba(239, 68, 68, 0.5); }
 .ppanel.one .pp-score { color: var(--red); }
 .ppanel.two .pp-score { color: var(--ink); }
 

@@ -42,7 +42,7 @@
   function clampTarget(t) {
     t = Math.round(Number(t));
     if (!isFinite(t)) return 3;
-    return Math.max(1, Math.min(15, t));
+    return Math.max(1, t); // no upper limit — Dali wants any target
   }
 
   function recomputeOver(s) {

@@ -1,6 +1,6 @@
 /* DuoScore service worker — precache the app shell, cache-first, offline-capable. */
 'use strict';
-var CACHE = 'duoscore-v1';
+var CACHE = 'duoscore-v2';
 var ASSETS = [
   './',
   './index.html',
