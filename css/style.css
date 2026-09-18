@@ -95,20 +95,27 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .btn.small { padding: 8px 14px; font-size: 13px; border-radius: 10px; }
 .btn.tiny { padding: 5px 10px; font-size: 12px; border-radius: 9px; }
 
-/* ---- round area ---- */
-.pointsgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-.ppanel { border: 1px solid var(--line); border-radius: 16px; padding: 16px 12px; text-align: center; background: var(--panel); }
-.ppanel .pp-name { font-size: 14px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ppanel .pp-add { display: flex; gap: 8px; }
-.ppanel .pp-add .pp-input {
-  flex: 1; min-width: 0; width: 100%;
+/* ---- round form: both players at once ---- */
+.roundform { display: flex; flex-direction: column; gap: 14px; }
+.rf-title { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); text-align: center; }
+.rf-title b { color: var(--ink); font-size: 15px; }
+.rf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rf-side { display: block; border: 1px solid var(--line); border-radius: 16px; padding: 14px 12px; background: var(--panel); }
+.rf-side.one { border-color: rgba(239, 68, 68, 0.45); }
+.rf-side .rf-name {
+  display: block; font-size: 14px; color: var(--muted); margin-bottom: 10px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;
+}
+.rf-side.one .rf-name { color: var(--red); }
+.rf-side .pp-input {
+  width: 100%; text-align: center;
   background: var(--panel2); color: var(--ink);
   border: 1px solid var(--line); border-radius: 12px;
-  padding: 12px 10px; font-size: 16px;
+  padding: 14px 8px; font-size: 24px; font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-.ppanel .pp-add .btn { flex: 0 0 auto; padding: 12px 16px; font-size: 15px; font-weight: 700; border-radius: 12px; }
-.ppanel.one .pp-add .btn { color: var(--red); border-color: rgba(239, 68, 68, 0.5); }
+.rf-side.one .pp-input { border-color: rgba(239, 68, 68, 0.35); }
+.roundform button + button { margin-top: -4px; }
 
 /* ---- banner ---- */
 .banner {
@@ -131,11 +138,13 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   padding: 10px 12px; font-size: 14px; font-variant-numeric: tabular-nums;
 }
 .hrow .rnum { color: var(--muted); width: 44px; }
-.hrow .rnames { flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hrow .rwin { color: var(--muted); width: 74px; text-align: right; }
-.hrow .rwin.w1 { color: var(--red); }
-.hrow .rwin.w2 { color: var(--ink); }
-.hrow .rwin.draw { color: var(--muted); }
+.hrow .rscores { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; min-width: 0; }
+.hrow .rscore { display: flex; gap: 5px; align-items: baseline; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hrow .rscore .psname { max-width: 34vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hrow .rscore b { color: var(--ink); font-size: 15px; font-variant-numeric: tabular-nums; }
+.hrow .rscore.ahead b { color: var(--ink); }
+.hrow .rscore.one.ahead b { color: var(--red); }
+.hrow .rdash { color: var(--muted); opacity: 0.6; }
 .hdel {
   flex: 0 0 auto; width: 30px; height: 30px;
   border: 1px solid var(--line); border-radius: 9px;

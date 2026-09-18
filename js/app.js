@@ -1,7 +1,8 @@
-/* DuoScore v2 UI — wires the pure core to the DOM. Simple: totals + small rounds. */
+/* DuoScore v3 UI — one round form where BOTH players' points go in at the same
+   time; history shows both numbers per round. Pure core + thin DOM wiring. */
 (function () {
   'use strict';
-  var KEY = 'duoscore.v1';
+  var KEY = 'duoscore.v3';
   var DuoCore = window.DuoCore;
   if (!DuoCore) throw new Error('score-core.js must load first');
 
@@ -50,32 +51,32 @@
     renderHistory();
   }
 
-  function panel(player) {
-    var key = player === 1 ? 'p1' : 'p2';
-    return '<div class="ppanel ' + (player === 1 ? 'one' : 'two') + '">' +
-      '<div class="pp-name">' + esc(state[key].name) + '</div>' +
-      '<div class="pp-add">' +
-        '<input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="How much?" class="pp-input" data-player="' + player + '">' +
-        '<button type="button" class="btn" data-player="' + player + '" data-add>Add</button>' +
-      '</div>' +
-    '</div>';
-  }
-
   function renderRoundArea() {
     var area = document.getElementById('roundArea');
-    if (state.over) {
-      area.innerHTML = '';
-      return;
-    }
+    if (state.over) { area.innerHTML = ''; return; }
     area.innerHTML =
-      '<div class="pointsgrid">' + panel(1) + panel(2) + '</div>' +
-      '<button type="button" class="btn primary big" id="finishBtn">Finish match \u25B8</button>';
+      '<div class="roundform">' +
+        '<div class="rf-title">Round <b>' + state.round + '</b></div>' +
+        '<div class="rf-grid">' +
+          '<label class="rf-side one"><span class="rf-name">' + esc(state.p1.name) + '</span>' +
+            '<input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="How much?" class="pp-input" data-side="1" autocomplete="off">' +
+          '</label>' +
+          '<label class="rf-side two"><span class="rf-name">' + esc(state.p2.name) + '</span>' +
+            '<input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="How much?" class="pp-input" data-side="2" autocomplete="off">' +
+          '</label>' +
+        '</div>' +
+        '<button type="button" class="btn primary big" id="addRoundBtn">Add this round</button>' +
+        '<button type="button" class="btn primary big" id="finishBtn">Finish match \u25B8</button>' +
+      '</div>';
+    // restore focus to the side that had it (after undo/delete from history)
+    var first = area.querySelector('.pp-input');
+    if (first && document.activeElement === document.body) first.focus();
   }
 
   function renderHistory() {
     var list = document.getElementById('historyList');
     if (!state.history.length) {
-      list.innerHTML = '<li class="emptyhist">No rounds yet \u2014 add points to start.</li>';
+      list.innerHTML = '<li class="emptyhist">No rounds yet \u2014 enter both scores and hit Add.</li>';
       document.getElementById('undoBtn').disabled = true;
       return;
     }
@@ -83,11 +84,17 @@
     var rows = [];
     for (var i = state.history.length - 1; i >= 0; i--) {
       var h = state.history[i];
-      var name = h.player === 1 ? state.p1.name : state.p2.name;
+      var lead = h.p1 > h.p2 ? 1 : h.p2 > h.p1 ? 2 : 0;
       rows.push(
-        '<li class="hrow"><span class="rnum">R' + h.n + '</span>' +
-        '<span class="rnames">' + esc(name) + ' <b>+' + h.pts + '</b></span>' +
-        '<button type="button" class="hdel" data-del="' + h.n + '" aria-label="Delete round ' + h.n + '">&#10005;</button></li>'
+        '<li class="hrow">' +
+          '<span class="rnum">R' + h.n + '</span>' +
+          '<span class="rscores">' +
+            '<span class="rscore one ' + (lead === 1 ? 'ahead' : '') + '"><span class="psname">' + esc(state.p1.name) + '</span> <b>' + h.p1 + '</b></span>' +
+            '<span class="rdash">\u2013</span>' +
+            '<span class="rscore two ' + (lead === 2 ? 'ahead' : '') + '"><span class="psname">' + esc(state.p2.name) + '</span> <b>' + h.p2 + '</b></span>' +
+          '</span>' +
+          '<button type="button" class="hdel" data-del="' + h.n + '" aria-label="Delete round ' + h.n + '">&#10005;</button>' +
+        '</li>'
       );
     }
     list.innerHTML = rows.join('');
@@ -101,38 +108,37 @@
   }
 
   /* ---------- events ---------- */
-  function addTyped(player, input) {
-    var digits = String(input.value || '').replace(/\D/g, '');
-    if (digits !== '') {
-      commit(DuoCore.addRound(state, player, Number(digits)));
-      input.value = '';
-      input.focus();
+  function digits(v) { return String(v).replace(/\D/g, ''); }
+
+  function gatherRound(area) {
+    var inputs = area.querySelectorAll('.pp-input');
+    if (inputs.length === 2 && DuoCore.addRound(state, digits(inputs[0].value), digits(inputs[1].value)) !== state) {
+      commit(DuoCore.addRound(state, digits(inputs[0].value), digits(inputs[1].value)));
+      inputs[0].value = '';
+      inputs[1].value = '';
+      inputs[0].focus();
     }
   }
 
   document.addEventListener('click', function (e) {
-    var t = e.target.closest ? e.target.closest('[data-add],[data-del],#finishBtn,#rematchBtn,#undoBtn,#resetBtn,#configBtn') : null;
+    var t = e.target.closest ? e.target.closest('#addRoundBtn,#finishBtn,#rematchBtn,#undoBtn,#resetBtn,#configBtn,[data-del]') : null;
     if (!t) return;
 
-    if (t.hasAttribute('data-add')) {
-      var p = Number(t.getAttribute('data-player'));
-      var inp = t.parentElement.querySelector('.pp-input');
-      if (inp) addTyped(p, inp);
-    }
-    else if (t.hasAttribute('data-del')) commit(DuoCore.deleteRound(state, Number(t.getAttribute('data-del'))));
+    if (t.id === 'addRoundBtn') gatherRound(document.getElementById('roundArea'));
     else if (t.id === 'finishBtn') commit(DuoCore.finish(state));
     else if (t.id === 'rematchBtn') commit(DuoCore.rematch(state));
     else if (t.id === 'undoBtn') commit(DuoCore.undo(state));
     else if (t.id === 'resetBtn') commit(DuoCore.rematch(state));
     else if (t.id === 'configBtn') openConfig();
+    else if (t.hasAttribute('data-del')) commit(DuoCore.deleteRound(state, Number(t.getAttribute('data-del'))));
   });
 
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter') return;
-    var inp = e.target.closest ? e.target.closest('.pp-input') : null;
+    var inp = e.target && e.target.closest ? e.target.closest('#roundArea .pp-input') : null;
     if (inp) {
       e.preventDefault();
-      addTyped(Number(inp.getAttribute('data-player')), inp);
+      gatherRound(document.getElementById('roundArea'));
     }
   });
 
@@ -154,7 +160,7 @@
 
   /* ---------- service worker (offline) ---------- */
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-    navigator.serviceWorker.register('./js/sw.js').catch(function () { /* offline PWA is progressive enhancement */ });
+    navigator.serviceWorker.register('./js/sw.js').catch(function () { /* progressive enhancement */ });
   }
 
   render();
