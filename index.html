@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="DuoScore — keep score for two players. Rounds, wins, rematch. Works offline.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <title>DuoScore</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-dot" aria-hidden="true"></div>
+      <h1>DuoScore</h1>
+    </div>
+    <button id="configBtn" class="iconbtn" type="button" aria-label="Settings">&#9881;</button>
+  </header>
+
+  <main>
+    <!-- Scoreboard -->
+    <section class="scoreboard" aria-label="scoreboard">
+      <div class="player p1col">
+        <div id="name1" class="pname">Player 1</div>
+        <div id="w1" class="pscore">0</div>
+        <div id="pips1" class="pips" aria-hidden="true"></div>
+      </div>
+      <div class="vs" aria-hidden="true">
+        <div class="vsline"></div>
+        <div class="vslabel">vs</div>
+        <div class="vsline"></div>
+      </div>
+      <div class="player p2col">
+        <div id="name2" class="pname">Player 2</div>
+        <div id="w2" class="pscore">0</div>
+        <div id="pips2" class="pips" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <div id="roundBadge" class="roundbadge">Round 1</div>
+
+    <!-- Match-over banner (hidden unless a match ends) -->
+    <section id="matchBanner" class="banner hidden" aria-live="polite">
+      <div id="bannerTitle" class="banner-title"></div>
+      <div id="bannerScore" class="banner-score"></div>
+      <button id="rematchBtn" class="btn primary big" type="button">Rematch &#8635;</button>
+    </section>
+
+    <!-- Round action area -->
+    <section id="roundArea" class="roundarea" aria-label="round scoring"></section>
+
+    <!-- History -->
+    <section class="historysec" aria-label="round history">
+      <div class="historyhead">
+        <h2>Rounds</h2>
+        <button id="undoBtn" class="btn ghost small" type="button">&#8630; Undo</button>
+      </div>
+      <ul id="historyList" class="historylist"></ul>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span id="modeTag" class="foottag">Winner mode</span>
+    <span class="foottag">First to <span id="targetTag">3</span></span>
+    <button id="resetBtn" class="btn ghost tiny" type="button">Reset match</button>
+  </footer>
+
+  <!-- Settings dialog -->
+  <dialog id="configDialog">
+    <form id="configForm" method="dialog">
+      <h2>Match settings</h2>
+      <label>Player 1
+        <input id="cfgName1" type="text" maxlength="16" autocomplete="off">
+      </label>
+      <label>Player 2
+        <input id="cfgName2" type="text" maxlength="16" autocomplete="off">
+      </label>
+      <label>Scoring
+        <select id="cfgMode">
+          <option value="winner">Who wins the round</option>
+          <option value="points">Points per round</option>
+        </select>
+      </label>
+      <label>First to (wins)
+        <input id="cfgTarget" type="number" min="1" max="15" step="1">
+      </label>
+      <div class="dialog-btns">
+        <button type="button" id="cfgCancel" class="btn ghost">Cancel</button>
+        <button value="save" class="btn primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="./js/score-core.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
