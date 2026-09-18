@@ -106,6 +106,33 @@
     return recomputeOver(next);
   }
 
+  /* Points mode: reset one player's open-round points (typed wrong / want to redo). */
+  function clearOpen(s, player) {
+    if (s.mode !== 'points' || s.over || (player !== 1 && player !== 2)) return s;
+    var next = clone(s);
+    next.open[player === 1 ? 'p1' : 'p2'] = 0;
+    return next;
+  }
+
+  /* Delete a closed round by its round number (any round, not just the last). */
+  function deleteRound(s, n) {
+    var idx = -1;
+    for (var i = 0; i < s.history.length; i++) {
+      if (s.history[i].n === n) { idx = i; break; }
+    }
+    if (idx === -1) return s;
+    var next = clone(s);
+    next.history.splice(idx, 1);
+    next.wins = { p1: 0, p2: 0 };
+    next.history.forEach(function (h) {
+      if (h.winner === 1) next.wins.p1 += 1;
+      if (h.winner === 2) next.wins.p2 += 1;
+    });
+    next.round = next.history.length ? next.history[next.history.length - 1].n + 1 : 1;
+    next.open = { p1: 0, p2: 0 };
+    return recomputeOver(next);
+  }
+
   function rematch(s) {
     var next = clone(s);
     next.round = 1;
@@ -158,6 +185,8 @@
     addPoints: addPoints,
     endRound: endRound,
     undo: undo,
+    deleteRound: deleteRound,
+    clearOpen: clearOpen,
     rematch: rematch,
     setNames: setNames,
     setMode: setMode,

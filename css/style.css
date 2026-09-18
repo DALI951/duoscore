@@ -150,6 +150,15 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .hrow .rwin.w1 { color: var(--red); }
 .hrow .rwin.w2 { color: var(--ink); }
 .hrow .rwin.draw { color: var(--muted); }
+.hdel {
+  flex: 0 0 auto; width: 30px; height: 30px;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: transparent; color: var(--muted);
+  font-size: 12px; line-height: 1; cursor: pointer;
+  touch-action: manipulation; margin-left: 8px;
+}
+.hdel:active { color: var(--red); border-color: rgba(239, 68, 68, 0.6); }
+.pp-clear { margin-top: 8px; }
 .emptyhist { color: var(--muted); font-size: 13px; text-align: center; padding: 14px 0; }
 
 /* ---- footer ---- */

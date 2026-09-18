@@ -88,17 +88,19 @@
               '<div class="pp-name">' + esc(state.p1.name) + '</div>' +
               '<div class="pp-score">' + state.open.p1 + '</div>' +
               '<div class="pp-add">' +
-                '<input type="number" inputmode="numeric" min="0" placeholder="How much?" class="pp-input" data-player="1">' +
+                '<input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="How much?" class="pp-input" data-player="1">' +
                 '<button type="button" class="btn" data-player="1" data-add>Add</button>' +
               '</div>' +
+              '<button type="button" class="btn ghost tiny pp-clear" data-player="1" data-clear>Clear</button>' +
             '</div>' +
             '<div class="ppanel two">' +
               '<div class="pp-name">' + esc(state.p2.name) + '</div>' +
               '<div class="pp-score">' + state.open.p2 + '</div>' +
               '<div class="pp-add">' +
-                '<input type="number" inputmode="numeric" min="0" placeholder="How much?" class="pp-input" data-player="2">' +
+                '<input type="text" inputmode="numeric" pattern="[0-9]*" placeholder="How much?" class="pp-input" data-player="2">' +
                 '<button type="button" class="btn" data-player="2" data-add>Add</button>' +
               '</div>' +
+              '<button type="button" class="btn ghost tiny pp-clear" data-player="2" data-clear>Clear</button>' +
             '</div>' +
           '</div>' +
           '<button type="button" class="btn primary big" id="endRoundBtn">End round</button>';
@@ -131,7 +133,8 @@
       rows.push(
         '<li class="hrow"><span class="rnum">R' + h.n + '</span>' +
         '<span class="rnames">' + names + '</span>' +
-        '<span class="rwin ' + cls + '">' + esc(who) + '</span></li>'
+        '<span class="rwin ' + cls + '">' + esc(who) + '</span>' +
+        '<button type="button" class="hdel" data-del="' + h.n + '" aria-label="Delete round ' + h.n + '">&#10005;</button></li>'
       );
     }
     list.innerHTML = rows.join('');
@@ -146,16 +149,16 @@
 
   /* ---------- events ---------- */
   function addTyped(player, input) {
-    var val = input.value === '' ? 0 : Number(input.value);
-    if (isFinite(val) && val > 0) {
-      commit(DuoCore.addPoints(state, player, val));
+    var digits = String(input.value || '').replace(/\D/g, '');
+    if (digits !== '') {
+      commit(DuoCore.addPoints(state, player, Number(digits)));
       input.value = '';
       input.focus();
     }
   }
 
   document.addEventListener('click', function (e) {
-    var t = e.target.closest ? e.target.closest('[data-win],[data-add],#endRoundBtn,#rematchBtn,#undoBtn,#resetBtn,#configBtn') : null;
+    var t = e.target.closest ? e.target.closest('[data-win],[data-add],[data-clear],[data-del],#endRoundBtn,#rematchBtn,#undoBtn,#resetBtn,#configBtn') : null;
     if (!t) return;
 
     if (t.hasAttribute('data-win')) commit(DuoCore.closeWinner(state, Number(t.getAttribute('data-win'))));
@@ -164,6 +167,8 @@
       var inp = t.parentElement.querySelector('.pp-input');
       if (inp) addTyped(p, inp);
     }
+    else if (t.hasAttribute('data-clear')) commit(DuoCore.clearOpen(state, Number(t.getAttribute('data-player'))));
+    else if (t.hasAttribute('data-del')) commit(DuoCore.deleteRound(state, Number(t.getAttribute('data-del'))));
     else if (t.id === 'endRoundBtn') commit(DuoCore.endRound(state));
     else if (t.id === 'rematchBtn') commit(DuoCore.rematch(state));
     else if (t.id === 'undoBtn') commit(DuoCore.undo(state));

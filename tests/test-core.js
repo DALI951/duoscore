@@ -50,6 +50,21 @@ eq('two closed rounds', pun.history.length, 2);
 var pu = DuoCore.undo(pun);
 eq('undo keeps first win', [pu.history.length, pu.wins, pu.round], [1, { p1: 0, p2: 1 }, 2]);
 
+// delete any round + clear open points
+var d = DuoCore.closeWinner(DuoCore.closeWinner(DuoCore.closeWinner(DuoCore.createGame(null), 1), 2), 1);
+d = DuoCore.deleteRound(d, 2); // remove P2's round
+eq('delete middle round', [d.history.length, d.history.map(function (h) { return h.n; }), d.wins], [2, [1, 3], { p1: 2, p2: 0 }]);
+eq('delete missing no-op', DuoCore.deleteRound(d, 999), d);
+var drained = DuoCore.closeWinner(DuoCore.closeWinner(DuoCore.createGame(null), 1), 1); // [R1,R2]
+drained = DuoCore.deleteRound(drained, 1);
+eq('delete first of two', [drained.history.map(function (h) { return h.n; }), drained.wins, drained.round], [[2], { p1: 1, p2: 0 }, 3]);
+var delSingle = DuoCore.deleteRound(DuoCore.closeWinner(DuoCore.createGame(null), 1), 1);
+eq('delete only round -> empty', [delSingle.history.length, delSingle.wins, delSingle.round], [0, { p1: 0, p2: 0 }, 1]);
+var c = DuoCore.addPoints(DuoCore.addPoints(DuoCore.setMode(DuoCore.createGame(null), 'points'), 1, 5), 2, 3);
+c = DuoCore.clearOpen(c, 1);
+eq('clearOpen zeroes p1', c.open, { p1: 0, p2: 3 });
+eq('clearOpen guards', DuoCore.clearOpen(DuoCore.createGame(null), 1), DuoCore.createGame(null));
+
 // rematch
 var r = DuoCore.closeWinner(DuoCore.closeWinner(s, 1), 2);
 r = DuoCore.rematch(r);

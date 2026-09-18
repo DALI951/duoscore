@@ -1,6 +1,6 @@
-/* DuoScore service worker — precache the app shell, cache-first, offline-capable. */
+/* DuoScore service worker — network-first with cache fallback (always fresh when online, offline-capable). */
 'use strict';
-var CACHE = 'duoscore-v2';
+var CACHE = 'duoscore-v3';
 var ASSETS = [
   './',
   './index.html',
@@ -29,16 +29,17 @@ self.addEventListener('activate', function (e) {
 
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
+  var url = new URL(e.request.url);
+  if (url.origin !== location.origin) return; // let the browser handle cross-origin
   e.respondWith(
-    caches.match(e.request).then(function (hit) {
-      if (hit) return hit;
-      return fetch(e.request).then(function (res) {
-        if (res && res.status === 200 && new URL(e.request.url).origin === location.origin) {
-          var copy = res.clone();
-          caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
-        }
-        return res;
-      });
+    fetch(e.request).then(function (res) {
+      if (res && res.status === 200) {
+        var copy = res.clone();
+        caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
+      }
+      return res;
+    }).catch(function () {
+      return caches.match(e.request, { ignoreSearch: true });
     })
   );
 });
