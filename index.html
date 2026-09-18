@@ -48,6 +48,7 @@
     <section id="matchBanner" class="banner hidden" aria-live="polite">
       <div id="bannerTitle" class="banner-title"></div>
       <div id="bannerScore" class="banner-score"></div>
+      <div id="bannerLoser" class="banner-loser" aria-live="polite"></div>
       <button id="rematchBtn" class="btn primary big" type="button">Rematch &#8635;</button>
     </section>
 
@@ -79,6 +80,15 @@
       <label>Player 2
         <input id="cfgName2" type="text" maxlength="16" autocomplete="off">
       </label>
+      <label>Win at (points)
+        <input id="cfgTarget" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Empty = no target, play to the end" autocomplete="off">
+      </label>
+      <div class="chips" aria-label="quick targets">
+        <button type="button" class="chip" data-t="50">50</button>
+        <button type="button" class="chip" data-t="100">100</button>
+        <button type="button" class="chip" data-t="200">200</button>
+        <button type="button" class="chip" data-t="500">500</button>
+      </div>
       <div class="dialog-btns">
         <button type="button" id="cfgCancel" class="btn ghost">Cancel</button>
         <button value="save" class="btn primary">Save</button>

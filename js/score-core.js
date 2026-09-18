@@ -1,7 +1,8 @@
-/* DuoScore v3 — pure match logic. No DOM. Node (require) + browser (window.DuoCore).
+/* DuoScore v4 — pure match logic. No DOM. Node (require) + browser (window.DuoCore).
    Model: each round records BOTH players' points at once ({n, p1, p2}); they add
-   straight to the running TOTALS. Nobody wins a round — the match winner is the
-   highest TOTAL at Finish. */
+   straight to the running TOTALS. Optional TARGET: when set, the match ends
+   automatically the moment a player's total reaches it (winner = higher total,
+   0 = draw). Without a target, Finish is manual. */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
     module.exports = factory();
@@ -25,12 +26,30 @@
     return isFinite(v) && v > 0 ? v : 0;
   }
 
+  function toTarget(v) {
+    v = Math.round(Number(v));
+    return isFinite(v) && v >= 1 ? v : 0; // 0 = no target
+  }
+
+  function winnerOf(s) {
+    return s.score.p1 > s.score.p2 ? 1 : s.score.p2 > s.score.p1 ? 2 : 0;
+  }
+
+  /* If a target is set and a player has reached it, lock the match. */
+  function autoFinish(next) {
+    if (next.target > 0 && (next.score.p1 >= next.target || next.score.p2 >= next.target)) {
+      next.over = { winner: winnerOf(next), score: { p1: next.score.p1, p2: next.score.p2 } };
+    }
+    return next;
+  }
+
   function createGame(overrides) {
     var s = {
-      version: 3,
+      version: 4,
       p1: { name: 'Player 1' },
       p2: { name: 'Player 2' },
       score: { p1: 0, p2: 0 },   // running TOTALS
+      target: 0,                 // win at this many points (0 = no target)
       round: 1,                  // next round number
       history: [],               // [{n, p1, p2}]
       over: null                 // {winner: 1|2|0, score:{p1,p2}} when finished
@@ -42,8 +61,8 @@
     return s;
   }
 
-  /* One round: BOTH players' points at the same time. A round needs at least one
-     positive number (the other side can be 0/empty). */
+  /* One round: BOTH players' points at the same time. Needs at least one
+     positive number (other side may be 0/empty). Auto-finishes on target. */
   function addRound(s, p1pts, p2pts) {
     if (s.over) return s;
     var a = toPts(p1pts), b = toPts(p2pts);
@@ -53,15 +72,24 @@
     next.score.p2 += b;
     next.history.push({ n: next.round, p1: a, p2: b });
     next.round += 1;
-    return next;
+    return autoFinish(next);
   }
 
-  /* Lock the match: winner = higher TOTAL (0 = draw). */
+  /* Manual finish: winner = higher total (0 = draw). Works with or without target. */
   function finish(s) {
     if (s.over) return s;
     var next = clone(s);
-    var winner = next.score.p1 > next.score.p2 ? 1 : next.score.p2 > next.score.p1 ? 2 : 0;
-    next.over = { winner: winner, score: { p1: next.score.p1, p2: next.score.p2 } };
+    next.over = { winner: winnerOf(next), score: { p1: next.score.p1, p2: next.score.p2 } };
+    return next;
+  }
+
+  /* Set (n>=1) or clear (0) the win target. Re-finishes if already reached. */
+  function setTarget(s, n) {
+    var t = toTarget(n);
+    if (t === s.target) return s;
+    var next = clone(s);
+    next.target = t;
+    if (t > 0) autoFinish(next);
     return next;
   }
 
@@ -109,14 +137,46 @@
     return next;
   }
 
+  /* Load + MIGRATE. Never throws away valid match data:
+     - v4  -> as-is (target defaulting to 0)
+     - v3  -> v4 (adds target: 0)
+     - v2  -> v4 best-effort: totals preserved by rebuilding rounds as
+              {n, p1: pts-of-1 else 0, p2: pts-of-2 else 0} in original order
+     - anything else (v1, garbage, missing) -> fresh game */
   function load(raw) {
     try {
       var parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object' || parsed.version !== 3 ||
-          typeof parsed.score !== 'object' || !Array.isArray(parsed.history)) {
+      if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.history)) {
         return createGame(null);
       }
-      return parsed;
+      if (parsed.version === 4) {
+        if (typeof parsed.score !== 'object') return createGame(null);
+        if (typeof parsed.target !== 'number') parsed.target = 0;
+        return parsed;
+      }
+      if (parsed.version === 3) {
+        if (typeof parsed.score !== 'object') return createGame(null);
+        parsed.version = 4;
+        parsed.target = 0;
+        return parsed;
+      }
+      if (parsed.version === 2) {
+        var out = createGame(parsed);
+        out.version = 4;
+        out.target = 0;
+        for (var i = 0; i < parsed.history.length; i++) {
+          var h = parsed.history[i];
+          var p1 = h.player === 1 ? toPts(h.pts) : 0;
+          var p2 = h.player === 2 ? toPts(h.pts) : 0;
+          out.score.p1 += p1;
+          out.score.p2 += p2;
+          out.history.push({ n: i + 1, p1: p1, p2: p2 });
+        }
+        out.round = out.history.length ? out.history[out.history.length - 1].n + 1 : 1;
+        out.over = null;
+        return out;
+      }
+      return createGame(null);
     } catch (e) {
       return createGame(null);
     }
@@ -126,6 +186,7 @@
     createGame: createGame,
     addRound: addRound,
     finish: finish,
+    setTarget: setTarget,
     undo: undo,
     deleteRound: deleteRound,
     rematch: rematch,
